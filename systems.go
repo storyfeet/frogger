@@ -28,17 +28,17 @@ func NewFrogMoveSystem(f *types.GameOb) *FrogMoveSystem {
 func (fms *FrogMoveSystem) Update(d float32) {
 	pos := &fms.f.SpaceComponent.Position
 	if engo.Input.Button("left").JustPressed() {
-		pos.X -= 10
+		pos.X -= 25
 	}
 
 	if engo.Input.Button("right").JustPressed() {
-		pos.X += 10
+		pos.X += 25
 	}
 	if engo.Input.Button("up").JustPressed() {
-		pos.Y -= 10
+		pos.Y -= 25
 	}
 	if engo.Input.Button("down").JustPressed() {
-		pos.Y += 10
+		pos.Y += 25
 	}
 }
 
@@ -93,11 +93,12 @@ func NewCarSpawnSystem(level int, sysList *SysList) *CarSpawnSystem {
 func (*CarSpawnSystem) Remove(e ecs.BasicEntity) {}
 func (css *CarSpawnSystem) Update(d float32) {
 	css.since += d
-	if rand.Float32()*10 < css.since*float32(css.level+3) {
+	if rand.Float32()*50 < css.since*float32(css.level+3) {
 		c := types.NewCar(engo.Point{rand.Float32() * 500, rand.Float32() * 300},
 			engo.Point{10, 0})
 		css.sys.Render.Add(&c.BasicEntity, &c.RenderComponent, &c.SpaceComponent)
 		css.sys.ObMove.Add(&c.BasicEntity, &c.SpaceComponent, &c.VelocityComponent)
+		css.since = 0
 	}
 
 }
