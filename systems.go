@@ -7,23 +7,6 @@ import (
 	"image/color"
 )
 
-type Frog struct {
-	ecs.BasicEntity
-	common.SpaceComponent
-	common.RenderComponent
-}
-
-func NewFrog() *Frog {
-	res := Frog{BasicEntity: ecs.NewBasic()}
-	res.SpaceComponent = common.SpaceComponent{Width: 100, Height: 100}
-	res.RenderComponent = common.RenderComponent{
-		Drawable: common.Triangle{},
-		Color:    color.Black,
-	}
-
-	return &res
-}
-
 type FrogMoveSystem struct {
 	f *Frog
 }
