@@ -1,5 +1,12 @@
 package types
 
+import (
+	"engo.io/ecs"
+	"engo.io/engo"
+	"engo.io/engo/common"
+	"image/color"
+)
+
 type VelocityComponent struct {
 	vel engo.Point
 }
@@ -28,7 +35,7 @@ func NewFrog() *GameOb {
 	return &res
 }
 
-func NewCar(loc, vel engo.Point) *GameOb {
+func NewCar(loc, vel engo.Point) *MovingOb {
 	res := MovingOb{BasicEntity: ecs.NewBasic()}
 	res.SpaceComponent = common.SpaceComponent{Position: loc, Width: 100, Height: 100}
 	res.VelocityComponent = VelocityComponent{vel}
@@ -38,5 +45,3 @@ func NewCar(loc, vel engo.Point) *GameOb {
 	}
 	return &res
 }
-
-CarSpawnSystem

@@ -4,6 +4,7 @@ import (
 	"engo.io/ecs"
 	"engo.io/engo"
 	"engo.io/engo/common"
+	"github.com/coderconvoy/frogger/types"
 	"image/color"
 )
 
@@ -20,7 +21,7 @@ func (ms *MainScene) Setup(w *ecs.World) {
 	engo.Input.RegisterButton("up", engo.ArrowUp)
 	engo.Input.RegisterButton("down", engo.ArrowDown)
 
-	fg := NewFrog()
+	fg := types.NewFrog()
 
 	rs := &common.RenderSystem{}
 	fms := NewFrogMoveSystem(fg)
