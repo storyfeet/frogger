@@ -72,7 +72,9 @@ func (oms *ObMoveSystem) Remove(e ecs.BasicEntity) {
 func (oms *ObMoveSystem) Update(d float32) {
 	for _, v := range oms.obs {
 		pos := &v.SpaceComponent.Position
-		pos.X += 10 * d
+		vel := &v.VelocityComponent.Vel
+		pos.X += vel.X * d
+		pos.Y += vel.Y * d
 	}
 }
 
@@ -94,8 +96,16 @@ func (*CarSpawnSystem) Remove(e ecs.BasicEntity) {}
 func (css *CarSpawnSystem) Update(d float32) {
 	css.since += d
 	if rand.Float32()*50 < css.since*float32(css.level+3) {
-		c := types.NewCar(engo.Point{rand.Float32() * 500, rand.Float32() * 300},
-			engo.Point{10, 0})
+		row := rand.Intn(10)
+		speed := float32((15 - row) * 5)
+		var x float32 = -100
+		if row%2 == 0 {
+			speed = -speed
+			x = 600
+		}
+
+		c := types.NewCar(engo.Point{x, float32(row * 50)},
+			engo.Point{speed, 0})
 		css.sys.Render.Add(&c.BasicEntity, &c.RenderComponent, &c.SpaceComponent)
 		css.sys.ObMove.Add(&c.BasicEntity, &c.SpaceComponent, &c.VelocityComponent)
 		css.since = 0

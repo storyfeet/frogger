@@ -9,7 +9,7 @@ import (
 )
 
 type VelocityComponent struct {
-	vel engo.Point
+	Vel engo.Point
 }
 
 type GameOb struct {
