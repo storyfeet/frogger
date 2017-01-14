@@ -16,7 +16,8 @@ func (*MainScene) Preload()     {}
 func (ms *MainScene) Setup(w *ecs.World) {
 	common.SetBackground(color.White)
 
-	engo.Input.RegisterButton("left", engo.ArrowLeft)
+    engo.Input.RegisterButton("left", engo.A)
+	//engo.Input.RegisterButton("left", engo.ArrowLeft)
 	engo.Input.RegisterButton("right", engo.ArrowRight)
 	engo.Input.RegisterButton("up", engo.ArrowUp)
 	engo.Input.RegisterButton("down", engo.ArrowDown)
