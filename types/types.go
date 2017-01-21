@@ -12,10 +12,24 @@ type VelocityComponent struct {
 	Vel engo.Point
 }
 
+func (vc *VelocityComponent) GetVelocityComponent() *VelocityComponent {
+	return vc
+}
+
+type DeathComponent struct {
+	DeadTime float32
+}
+
+func (dc *DeathComponent) GetDeathComponent() *DeathComponent {
+	return dc
+}
+
 type GameOb struct {
 	ecs.BasicEntity
 	common.SpaceComponent
+	common.CollisionComponent
 	common.RenderComponent
+	DeathComponent
 }
 
 type MovingOb struct {
@@ -23,6 +37,7 @@ type MovingOb struct {
 	common.SpaceComponent
 	VelocityComponent
 	common.RenderComponent
+	common.CollisionComponent
 }
 
 func NewFrog() *GameOb {
@@ -32,6 +47,8 @@ func NewFrog() *GameOb {
 		Drawable: common.Triangle{},
 		Color:    color.Black,
 	}
+	res.DeathComponent = DeathComponent{}
+	res.CollisionComponent = common.CollisionComponent{Solid: false, Main: true}
 	res.SetZIndex(4.5)
 
 	return &res
@@ -45,6 +62,7 @@ func NewCar(loc, vel engo.Point) *MovingOb {
 		Drawable: common.Rectangle{},
 		Color:    color.RGBA{uint8(rand.Intn(255)), 0, 255, 255},
 	}
+	res.CollisionComponent = common.CollisionComponent{Solid: true, Main: false}
 	res.SetZIndex(3.5)
 	return &res
 }

@@ -5,6 +5,7 @@ import (
 	"engo.io/engo"
 	"engo.io/engo/common"
 	"github.com/coderconvoy/frogger/types"
+	"image/color"
 	"math/rand"
 )
 
@@ -13,6 +14,8 @@ type SysList struct {
 	FrogMove *FrogMoveSystem
 	CarSpawn *CarSpawnSystem
 	ObMove   *ObMoveSystem
+	CollSys  *common.CollisionSystem
+	CrashSys *CrashSystem
 }
 
 var sysList SysList
@@ -27,6 +30,10 @@ func NewFrogMoveSystem(f *types.GameOb) *FrogMoveSystem {
 
 func (fms *FrogMoveSystem) Update(d float32) {
 	pos := &fms.f.SpaceComponent.Position
+	if fms.f.DeathComponent.DeadTime > 0 {
+		return
+	}
+
 	if engo.Input.Button("left").JustPressed() {
 		pos.X -= 25
 	}
@@ -96,7 +103,7 @@ func (*CarSpawnSystem) Remove(e ecs.BasicEntity) {}
 func (css *CarSpawnSystem) Update(d float32) {
 	css.since += d
 	if rand.Float32()*50 < css.since*float32(css.level+3) {
-		row := rand.Intn(10)
+		row := rand.Intn(6) + 1
 		speed := float32((15 - row) * 5)
 		var x float32 = -100
 		if row%2 == 0 {
@@ -108,7 +115,62 @@ func (css *CarSpawnSystem) Update(d float32) {
 			engo.Point{speed, 0})
 		css.sys.Render.Add(&c.BasicEntity, &c.RenderComponent, &c.SpaceComponent)
 		css.sys.ObMove.Add(&c.BasicEntity, &c.SpaceComponent, &c.VelocityComponent)
+		css.sys.CollSys.AddByInterface(c)
 		css.since = 0
 	}
 
+}
+
+type CrashEntity struct {
+	*ecs.BasicEntity
+	*types.DeathComponent
+	*common.CollisionComponent
+	*common.RenderComponent
+	*common.SpaceComponent
+}
+
+type CrashSystem struct {
+	obs []CrashEntity
+}
+
+func (cs *CrashSystem) Add(be *ecs.BasicEntity, dc *types.DeathComponent, cc *common.CollisionComponent, rc *common.RenderComponent, sc *common.SpaceComponent) {
+	cs.obs = append(cs.obs, CrashEntity{be, dc, cc, rc, sc})
+}
+
+func (cs *CrashSystem) AddByInterface(ob interface {
+	GetBasicEntity() *ecs.BasicEntity
+	GetDeathComponent() *types.DeathComponent
+	GetCollisionComponent() *common.CollisionComponent
+	GetRenderComponent() *common.RenderComponent
+	GetSpaceComponent() *common.SpaceComponent
+}) {
+	cs.Add(ob.GetBasicEntity(), ob.GetDeathComponent(), ob.GetCollisionComponent(), ob.GetRenderComponent(), ob.GetSpaceComponent())
+}
+
+func (cs *CrashSystem) Remove(e ecs.BasicEntity) {
+	dp := -1
+	for i, v := range cs.obs {
+		if v.ID() == e.ID() {
+			dp = i
+			break
+		}
+	}
+	if dp >= 0 {
+		cs.obs = append(cs.obs[:dp], cs.obs[dp:]...)
+	}
+}
+
+func (cs *CrashSystem) Update(d float32) {
+
+	for _, v := range cs.obs {
+		if v.CollisionComponent.Collides || v.DeathComponent.DeadTime > 0 {
+			v.DeathComponent.DeadTime += d
+			v.RenderComponent.Color = color.RGBA{255, 0, 0, 255}
+		}
+		if v.DeadTime > 2 {
+			v.DeadTime = 0
+			v.RenderComponent.Color = color.RGBA{0, 0, 0, 255}
+			v.SpaceComponent.Position = engo.Point{300, 350}
+		}
+	}
 }
