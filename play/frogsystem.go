@@ -1,12 +1,10 @@
-package sys
+package play
 
 import (
 	"engo.io/ecs"
 	"engo.io/engo"
 	"engo.io/engo/common"
-	"github.com/coderconvoy/frogger/types"
 	"image/color"
-	"math/rand"
 )
 
 type GameOb struct {
@@ -34,10 +32,10 @@ func NewFrog() *GameOb {
 var sysList SysList
 
 type FrogMoveSystem struct {
-	f *types.GameOb
+	f *GameOb
 }
 
-func NewFrogMoveSystem(f *types.GameOb) *FrogMoveSystem {
+func NewFrogMoveSystem(f *GameOb) *FrogMoveSystem {
 	return &FrogMoveSystem{f}
 }
 
@@ -68,13 +66,13 @@ func (*FrogMoveSystem) Remove(e ecs.BasicEntity) {
 type movable struct {
 	*ecs.BasicEntity
 	*common.SpaceComponent
-	*types.VelocityComponent
+	*VelocityComponent
 }
 type ObMoveSystem struct {
 	obs []movable
 }
 
-func (oms *ObMoveSystem) Add(a *ecs.BasicEntity, b *common.SpaceComponent, c *types.VelocityComponent) {
+func (oms *ObMoveSystem) Add(a *ecs.BasicEntity, b *common.SpaceComponent, c *VelocityComponent) {
 	oms.obs = append(oms.obs, movable{a, b, c})
 }
 func (oms *ObMoveSystem) Remove(e ecs.BasicEntity) {
@@ -105,7 +103,7 @@ type CarSpawnSystem struct {
 }
 type CrashEntity struct {
 	*ecs.BasicEntity
-	*types.DeathComponent
+	*DeathComponent
 	*common.CollisionComponent
 	*common.RenderComponent
 	*common.SpaceComponent
@@ -115,13 +113,13 @@ type CrashSystem struct {
 	obs []CrashEntity
 }
 
-func (cs *CrashSystem) Add(be *ecs.BasicEntity, dc *types.DeathComponent, cc *common.CollisionComponent, rc *common.RenderComponent, sc *common.SpaceComponent) {
+func (cs *CrashSystem) Add(be *ecs.BasicEntity, dc *DeathComponent, cc *common.CollisionComponent, rc *common.RenderComponent, sc *common.SpaceComponent) {
 	cs.obs = append(cs.obs, CrashEntity{be, dc, cc, rc, sc})
 }
 
 func (cs *CrashSystem) AddByInterface(ob interface {
 	GetBasicEntity() *ecs.BasicEntity
-	GetDeathComponent() *types.DeathComponent
+	GetDeathComponent() *DeathComponent
 	GetCollisionComponent() *common.CollisionComponent
 	GetRenderComponent() *common.RenderComponent
 	GetSpaceComponent() *common.SpaceComponent

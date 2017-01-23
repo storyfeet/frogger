@@ -1,10 +1,10 @@
-package sys
+package play
 
 import (
 	"engo.io/ecs"
 	"engo.io/engo"
 	"engo.io/engo/common"
-	"github.com/coderconvoy/frogger/types"
+	"fmt"
 	"image/color"
 	"math/rand"
 )
@@ -50,12 +50,53 @@ func (css *CarSpawnSystem) Update(d float32) {
 			x = 600
 		}
 
-		c := types.NewCar(engo.Point{x, float32(row * 50)},
+		c := NewCar(engo.Point{x, float32(row * 50)},
 			engo.Point{speed, 0})
 		css.sys.Render.Add(&c.BasicEntity, &c.RenderComponent, &c.SpaceComponent)
 		css.sys.ObMove.Add(&c.BasicEntity, &c.SpaceComponent, &c.VelocityComponent)
 		css.sys.CollSys.AddByInterface(c)
+		css.sys.BoundsSys.AddByInterface(c)
 		css.since = 0
 	}
 
+}
+
+//Bounds Death System, for killing cars out of bounds
+
+type BoundsDeathSystem struct {
+	rect engo.AABB
+	w    *ecs.World
+	obs  []SpaceEntity
+}
+
+func (bds *BoundsDeathSystem) Setup(w *ecs.World) {
+	bds.w = w
+}
+
+func (bds *BoundsDeathSystem) Add(be *ecs.BasicEntity, sc *common.SpaceComponent) {
+	bds.obs = append(bds.obs, SpaceEntity{be, sc})
+}
+
+func (bds *BoundsDeathSystem) AddByInterface(ob Spaceable) {
+	bds.Add(ob.GetBasicEntity(), ob.GetSpaceComponent())
+}
+
+func (bds *BoundsDeathSystem) Update(d float32) {
+	t := bds.obs
+	for _, v := range t {
+		sc := v.SpaceComponent
+		fmt.Printf("car : ")
+		if sc.Position.X+sc.Width < bds.rect.Min.X ||
+			sc.Position.X > bds.rect.Max.X ||
+			sc.Position.Y+sc.Height < bds.rect.Min.Y ||
+			sc.Position.Y > bds.rect.Max.Y {
+			fmt.Printf("Delete Car %s\n", v)
+
+			bds.w.RemoveEntity(*v.BasicEntity)
+		}
+	}
+}
+
+func (bds *BoundsDeathSystem) Remove(ob ecs.BasicEntity) {
+	//bds.obs = RemoveSpaceEntity(bds.obs, ob.ID())
 }

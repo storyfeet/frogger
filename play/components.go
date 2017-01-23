@@ -1,4 +1,8 @@
-package sys
+package play
+
+import (
+	"engo.io/engo"
+)
 
 type VelocityComponent struct {
 	Vel engo.Point
