@@ -43,7 +43,7 @@ func (ms *MainScene) Setup(w *ecs.World) {
 	sList.CarSpawn = NewCarSpawnSystem(1, &sList)
 	sList.CollSys = &common.CollisionSystem{}
 	sList.CrashSys = &CrashSystem{}
-	sList.BoundsSys = &BoundsDeathSystem{rect: engo.AABB{engo.Point{-5, -5}, engo.Point{590, 400}}}
+	sList.BoundsSys = &BoundsDeathSystem{rect: engo.AABB{engo.Point{-5, -5}, engo.Point{610, 410}}, w: w}
 
 	sList.Render.AddByInterface(fg)
 	sList.CollSys.AddByInterface(fg)

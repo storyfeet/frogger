@@ -84,7 +84,7 @@ func (oms *ObMoveSystem) Remove(e ecs.BasicEntity) {
 		}
 	}
 	if dp >= 0 {
-		oms.obs = append(oms.obs[:dp], oms.obs[dp:]...)
+		oms.obs = append(oms.obs[:dp], oms.obs[dp+1:]...)
 	}
 }
 func (oms *ObMoveSystem) Update(d float32) {

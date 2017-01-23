@@ -69,15 +69,16 @@ type BoundsDeathSystem struct {
 	obs  []SpaceEntity
 }
 
-func (bds *BoundsDeathSystem) Setup(w *ecs.World) {
-	bds.w = w
-}
-
 func (bds *BoundsDeathSystem) Add(be *ecs.BasicEntity, sc *common.SpaceComponent) {
 	bds.obs = append(bds.obs, SpaceEntity{be, sc})
 }
 
 func (bds *BoundsDeathSystem) AddByInterface(ob Spaceable) {
+	be := ob.GetBasicEntity()
+	if be == nil {
+		fmt.Printf("Log No Entity")
+		return
+	}
 	bds.Add(ob.GetBasicEntity(), ob.GetSpaceComponent())
 }
 
@@ -85,12 +86,10 @@ func (bds *BoundsDeathSystem) Update(d float32) {
 	t := bds.obs
 	for _, v := range t {
 		sc := v.SpaceComponent
-		fmt.Printf("car : ")
 		if sc.Position.X+sc.Width < bds.rect.Min.X ||
 			sc.Position.X > bds.rect.Max.X ||
 			sc.Position.Y+sc.Height < bds.rect.Min.Y ||
 			sc.Position.Y > bds.rect.Max.Y {
-			fmt.Printf("Delete Car %s\n", v)
 
 			bds.w.RemoveEntity(*v.BasicEntity)
 		}
@@ -98,5 +97,6 @@ func (bds *BoundsDeathSystem) Update(d float32) {
 }
 
 func (bds *BoundsDeathSystem) Remove(ob ecs.BasicEntity) {
-	//bds.obs = RemoveSpaceEntity(bds.obs, ob.ID())
+
+	bds.obs = RemoveSpaceEntity(bds.obs, ob.ID())
 }
