@@ -1,29 +1,30 @@
 package play
 
 import (
+	"image/color"
+
 	"engo.io/ecs"
 	"engo.io/engo"
 	"engo.io/engo/common"
-	"image/color"
 )
 
-type GameOb struct {
+type Frog struct {
 	ecs.BasicEntity
+	common.RenderComponent
 	common.SpaceComponent
 	common.CollisionComponent
-	common.RenderComponent
 	DeathComponent
 }
 
-func NewFrog() *GameOb {
-	res := GameOb{BasicEntity: ecs.NewBasic()}
+func NewFrog() *Frog {
+	res := Frog{BasicEntity: ecs.NewBasic()}
 	res.SpaceComponent = common.SpaceComponent{Width: 50, Height: 50}
 	res.RenderComponent = common.RenderComponent{
 		Drawable: common.Triangle{},
 		Color:    color.Black,
 	}
 	res.DeathComponent = DeathComponent{}
-	res.CollisionComponent = common.CollisionComponent{Solid: false, Main: true}
+	res.CollisionComponent = common.CollisionComponent{Solid: false, Main: true, Extra: engo.Point{-3, -3}}
 	res.SetZIndex(4.5)
 
 	return &res
@@ -32,10 +33,10 @@ func NewFrog() *GameOb {
 var sysList SysList
 
 type FrogMoveSystem struct {
-	f *GameOb
+	f *Frog
 }
 
-func NewFrogMoveSystem(f *GameOb) *FrogMoveSystem {
+func NewFrogMoveSystem(f *Frog) *FrogMoveSystem {
 	return &FrogMoveSystem{f}
 }
 

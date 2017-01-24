@@ -3,7 +3,6 @@ package play
 import (
 	"engo.io/ecs"
 	"engo.io/engo/common"
-	"fmt"
 )
 
 type ECSBasicable interface {
@@ -24,7 +23,6 @@ func RemoveSpaceEntity(sl []SpaceEntity, id uint64) []SpaceEntity {
 	dp := -1
 	for i, v := range sl {
 		if v.ID() == id {
-			fmt.Println("Found")
 			dp = i
 			break
 		}
