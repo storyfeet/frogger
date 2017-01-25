@@ -14,9 +14,10 @@ type Frog struct {
 	common.SpaceComponent
 	common.CollisionComponent
 	DeathComponent
+	JumpComponent
 }
 
-func NewFrog() *Frog {
+func NewFrog(loc engo.Point) *Frog {
 	res := Frog{BasicEntity: ecs.NewBasic()}
 	res.SpaceComponent = common.SpaceComponent{Width: 50, Height: 50}
 	res.RenderComponent = common.RenderComponent{
@@ -26,8 +27,16 @@ func NewFrog() *Frog {
 	res.DeathComponent = DeathComponent{}
 	res.CollisionComponent = common.CollisionComponent{Solid: false, Main: true, Extra: engo.Point{-3, -3}}
 	res.SetZIndex(4.5)
+	res.Reset(loc)
 
 	return &res
+}
+
+func (fg *Frog) Reset(pt engo.Point) {
+	fg.SpaceComponent.Position = pt
+	fg.JumpComponent.Target = pt
+	fg.JumpComponent.Next = pt
+	fg.RenderComponent.Color = color.Black
 }
 
 var sysList SysList
@@ -41,23 +50,61 @@ func NewFrogMoveSystem(f *Frog) *FrogMoveSystem {
 }
 
 func (fms *FrogMoveSystem) Update(d float32) {
+	jc := &fms.f.JumpComponent
+	jcT := &jc.Target
+	jcN := &jc.Next
+
 	pos := &fms.f.SpaceComponent.Position
 	if fms.f.DeathComponent.DeadTime > 0 {
 		return
 	}
 
 	if engo.Input.Button("left").JustPressed() {
-		pos.X -= 25
+		jcN.Y = jcT.Y
+		jcN.X = jcT.X - 50
 	}
-
 	if engo.Input.Button("right").JustPressed() {
-		pos.X += 25
+		jcN.Y = jcT.Y
+		jcN.X = jcT.X + 50
 	}
 	if engo.Input.Button("up").JustPressed() {
-		pos.Y -= 25
+		jcN.X = jcT.X
+		jcN.Y = jcT.Y - 50
 	}
 	if engo.Input.Button("down").JustPressed() {
-		pos.Y += 25
+		jcN.X = jcT.X
+		jcN.Y = jcT.Y + 50
+	}
+
+	if *pos == *jcT {
+		*jcT = *jcN
+	}
+
+	if pos.X < jcT.X {
+		pos.X += d * 140
+		if pos.X > jcT.X {
+			pos.X = jcT.X
+		}
+	}
+
+	if pos.X > jcT.X {
+		pos.X -= d * 140
+		if pos.X < jcT.X {
+			pos.X = jcT.X
+		}
+	}
+	if pos.Y < jcT.Y {
+		pos.Y += d * 140
+		if pos.Y > jcT.Y {
+			pos.Y = jcT.Y
+		}
+	}
+
+	if pos.Y > jcT.Y {
+		pos.Y -= d * 140
+		if pos.Y < jcT.Y {
+			pos.Y = jcT.Y
+		}
 	}
 }
 
@@ -69,6 +116,7 @@ type movable struct {
 	*common.SpaceComponent
 	*VelocityComponent
 }
+
 type ObMoveSystem struct {
 	obs []movable
 }
@@ -97,11 +145,6 @@ func (oms *ObMoveSystem) Update(d float32) {
 	}
 }
 
-type CarSpawnSystem struct {
-	sys   *SysList
-	since float32
-	level int
-}
 type CrashEntity struct {
 	*ecs.BasicEntity
 	*DeathComponent
@@ -111,21 +154,11 @@ type CrashEntity struct {
 }
 
 type CrashSystem struct {
-	obs []CrashEntity
+	obs []*Frog
 }
 
-func (cs *CrashSystem) Add(be *ecs.BasicEntity, dc *DeathComponent, cc *common.CollisionComponent, rc *common.RenderComponent, sc *common.SpaceComponent) {
-	cs.obs = append(cs.obs, CrashEntity{be, dc, cc, rc, sc})
-}
-
-func (cs *CrashSystem) AddByInterface(ob interface {
-	GetBasicEntity() *ecs.BasicEntity
-	GetDeathComponent() *DeathComponent
-	GetCollisionComponent() *common.CollisionComponent
-	GetRenderComponent() *common.RenderComponent
-	GetSpaceComponent() *common.SpaceComponent
-}) {
-	cs.Add(ob.GetBasicEntity(), ob.GetDeathComponent(), ob.GetCollisionComponent(), ob.GetRenderComponent(), ob.GetSpaceComponent())
+func (cs *CrashSystem) Add(f *Frog) {
+	cs.obs = append(cs.obs, f)
 }
 
 func (cs *CrashSystem) Remove(e ecs.BasicEntity) {
@@ -149,9 +182,8 @@ func (cs *CrashSystem) Update(d float32) {
 			v.RenderComponent.Color = color.RGBA{255, 0, 0, 255}
 		}
 		if v.DeadTime > 2 {
+			v.Reset(engo.Point{300, 350})
 			v.DeadTime = 0
-			v.RenderComponent.Color = color.RGBA{0, 0, 0, 255}
-			v.SpaceComponent.Position = engo.Point{300, 350}
 		}
 	}
 }

@@ -19,3 +19,12 @@ type DeathComponent struct {
 func (dc *DeathComponent) GetDeathComponent() *DeathComponent {
 	return dc
 }
+
+type JumpComponent struct {
+	Target engo.Point
+	Next   engo.Point
+}
+
+func (jc *JumpComponent) GetJumpComponent() *JumpComponent {
+	return jc
+}

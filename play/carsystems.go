@@ -30,6 +30,12 @@ func NewCar(loc, vel engo.Point) *MovingOb {
 	return &res
 }
 
+type CarSpawnSystem struct {
+	sys   *SysList
+	since float32
+	level int
+}
+
 func NewCarSpawnSystem(level int, sysList *SysList) *CarSpawnSystem {
 	return &CarSpawnSystem{
 		sys:   sysList,

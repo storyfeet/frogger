@@ -33,7 +33,7 @@ func (ms *MainScene) Setup(w *ecs.World) {
 
 	var sList SysList
 
-	fg := NewFrog()
+	fg := NewFrog(engo.Point{300, 350})
 	a := fg.GetBasicEntity()
 	fmt.Println(a.ID())
 
@@ -47,7 +47,7 @@ func (ms *MainScene) Setup(w *ecs.World) {
 
 	sList.Render.AddByInterface(fg)
 	sList.CollSys.AddByInterface(fg)
-	sList.CrashSys.AddByInterface(fg)
+	sList.CrashSys.Add(fg)
 
 	w.AddSystem(sList.Render)
 	w.AddSystem(sList.CollSys)
