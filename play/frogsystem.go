@@ -26,7 +26,7 @@ func NewFrog(loc engo.Point) *Frog {
 	}
 	res.DeathComponent = DeathComponent{}
 	res.CollisionComponent = common.CollisionComponent{Solid: false, Main: true, Extra: engo.Point{-3, -3}}
-	res.SetZIndex(4.5)
+	res.SetZIndex(2.5)
 	res.Reset(loc)
 
 	return &res
@@ -55,29 +55,30 @@ func (fms *FrogMoveSystem) Update(d float32) {
 	jcN := &jc.Next
 
 	pos := &fms.f.SpaceComponent.Position
-	if fms.f.DeathComponent.DeadTime > 0 {
-		return
-	}
+	if fms.f.DeathComponent.DeadTime == 0 {
+		rel := engo.Point{0, 0}
+		if engo.Input.Button("left").JustPressed() {
+			rel = engo.Point{-50, 0}
+		}
+		if engo.Input.Button("right").JustPressed() {
+			rel = engo.Point{50, 0}
+		}
+		if engo.Input.Button("up").JustPressed() {
+			rel = engo.Point{0, -50}
+		}
+		if engo.Input.Button("down").JustPressed() {
+			rel = engo.Point{0, 50}
+		}
 
-	if engo.Input.Button("left").JustPressed() {
-		jcN.Y = jcT.Y
-		jcN.X = jcT.X - 50
-	}
-	if engo.Input.Button("right").JustPressed() {
-		jcN.Y = jcT.Y
-		jcN.X = jcT.X + 50
-	}
-	if engo.Input.Button("up").JustPressed() {
-		jcN.X = jcT.X
-		jcN.Y = jcT.Y - 50
-	}
-	if engo.Input.Button("down").JustPressed() {
-		jcN.X = jcT.X
-		jcN.Y = jcT.Y + 50
-	}
+		np := engo.Point{0, 0}
+		if rel != np {
+			jcN.X = jcT.X + rel.X
+			jcN.Y = jcT.Y + rel.Y
+		}
 
-	if *pos == *jcT {
-		*jcT = *jcN
+		if *pos == *jcT {
+			*jcT = *jcN
+		}
 	}
 
 	if pos.X < jcT.X {
@@ -136,6 +137,7 @@ func (oms *ObMoveSystem) Remove(e ecs.BasicEntity) {
 		oms.obs = append(oms.obs[:dp], oms.obs[dp+1:]...)
 	}
 }
+
 func (oms *ObMoveSystem) Update(d float32) {
 	for _, v := range oms.obs {
 		pos := &v.SpaceComponent.Position

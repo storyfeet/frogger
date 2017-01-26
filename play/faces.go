@@ -13,6 +13,19 @@ type Spaceable interface {
 	ECSBasicable
 	GetSpaceComponent() *common.SpaceComponent
 }
+type Renderable interface {
+	Spaceable
+	GetRenderComponent() *common.RenderComponent
+}
+type Collidable interface {
+	Spaceable
+	GetCollisionComponent() *common.CollisionComponent
+}
+
+type Drivable interface {
+	Collidable
+	GetVelocityComponent() *VelocityComponent
+}
 
 type SpaceEntity struct {
 	*ecs.BasicEntity
