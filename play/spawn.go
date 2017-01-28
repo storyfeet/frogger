@@ -9,6 +9,25 @@ import (
 
 type CarFactory func(float32) (Drivable, bool)
 
+func (cf CarFactory) Init() []Drivable {
+
+	res := []Drivable{}
+	var i float32
+	for i = 0; i < 25; i += 0.05 {
+		c, ok := cf(0.05)
+
+		if ok {
+			sc := c.GetSpaceComponent()
+			vc := c.GetVelocityComponent()
+			sc.Position.X += vc.Vel.X * (25 - i)
+			sc.Position.Y += vc.Vel.Y * (25 - i)
+			res = append(res, c)
+		}
+	}
+	return res
+
+}
+
 func BasicCarFactory(pos, vel engo.Point, wait, n, r, lt float32) CarFactory {
 	var since float32 = 0
 	return func(d float32) (Drivable, bool) {
@@ -37,16 +56,30 @@ func NewCarSpawnSystem(level int, sysList *SysList) *CarSpawnSystem {
 	for i := 0; i < 6; i++ {
 		m2 := float32(i % 2)
 		v := float32(50 - (3 * i))
-		rows = append(rows, BasicCarFactory(
+		newFac := BasicCarFactory(
 			engo.Point{-100 + m2*700, float32((i + 1) * 50)},
 			engo.Point{(1 - m2*2) * v, 0},
 			4, 0, 1000, 1000,
-		))
+		)
+		rows = append(rows, newFac)
 	}
 
 	return &CarSpawnSystem{
 		sys:  sysList,
 		rows: rows,
+	}
+}
+
+func (css *CarSpawnSystem) Fill() {
+	for _, fac := range css.rows {
+		cars := fac.Init()
+
+		for _, c := range cars {
+			css.sys.Render.AddByInterface(c)
+			css.sys.ObMove.AddByInterface(c)
+			css.sys.CollSys.AddByInterface(c)
+			css.sys.BoundsSys.AddByInterface(c)
+		}
 	}
 }
 
@@ -57,8 +90,8 @@ func (*CarSpawnSystem) Remove(e ecs.BasicEntity) {}
 //Update cycle through factories and see if they have a car to makek
 func (css *CarSpawnSystem) Update(d float32) {
 
-	for _, v := range css.rows {
-		c, ok := v(d)
+	for _, fac := range css.rows {
+		c, ok := fac(d)
 		if ok {
 			css.sys.Render.AddByInterface(c)
 			css.sys.ObMove.AddByInterface(c)

@@ -57,4 +57,5 @@ func (ms *MainScene) Setup(w *ecs.World) {
 	w.AddSystem(sList.CrashSys)
 	w.AddSystem(sList.BoundsSys)
 
+	sList.CarSpawn.Fill()
 }

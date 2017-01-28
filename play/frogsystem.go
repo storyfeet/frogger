@@ -82,27 +82,27 @@ func (fms *FrogMoveSystem) Update(d float32) {
 	}
 
 	if pos.X < jcT.X {
-		pos.X += d * 140
+		pos.X += d * 200
 		if pos.X > jcT.X {
 			pos.X = jcT.X
 		}
 	}
 
 	if pos.X > jcT.X {
-		pos.X -= d * 140
+		pos.X -= d * 200
 		if pos.X < jcT.X {
 			pos.X = jcT.X
 		}
 	}
 	if pos.Y < jcT.Y {
-		pos.Y += d * 140
+		pos.Y += d * 200
 		if pos.Y > jcT.Y {
 			pos.Y = jcT.Y
 		}
 	}
 
 	if pos.Y > jcT.Y {
-		pos.Y -= d * 140
+		pos.Y -= d * 200
 		if pos.Y < jcT.Y {
 			pos.Y = jcT.Y
 		}
