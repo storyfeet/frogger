@@ -5,25 +5,31 @@ import (
 	"engo.io/engo/common"
 )
 
+//engo-faces
 type ECSBasicable interface {
 	GetBasicEntity() *ecs.BasicEntity
 }
 
 type Spaceable interface {
-	ECSBasicable
 	GetSpaceComponent() *common.SpaceComponent
 }
 type Renderable interface {
-	Spaceable
 	GetRenderComponent() *common.RenderComponent
 }
 type Collidable interface {
-	Spaceable
 	GetCollisionComponent() *common.CollisionComponent
 }
 
+//froggerfaces
+type Velocitable interface {
+	GetVelocityComponent() *VelocityComponent
+}
+
 type Drivable interface {
+	ECSBasicable
+	Spaceable
 	Collidable
+	Renderable
 	GetVelocityComponent() *VelocityComponent
 }
 

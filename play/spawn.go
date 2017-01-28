@@ -7,38 +7,64 @@ import (
 	"engo.io/engo"
 )
 
-type CarSpawnSystem struct {
-	sys  *SysList
-	rows []func(dt float32) (Drivable, bool)
-}
+type CarFactory func(float32) (Drivable, bool)
 
-func NewCarSpawnSystem(level int, sysList *SysList) *CarSpawnSystem {
-	return &CarSpawnSystem{
-		sys:   sysList,
-		since: 0,
-		level: level,
+func BasicCarFactory(pos, vel engo.Point, wait, n, r, lt float32) CarFactory {
+	var since float32 = 0
+	return func(d float32) (Drivable, bool) {
+		since += d
+
+		if since < wait {
+			return nil, false
+		}
+
+		if since-wait+n+rand.Float32()*r > lt {
+			since = 0
+			return NewCar(pos, vel), true
+		}
+		return nil, false
+
 	}
 }
 
-func (*CarSpawnSystem) Remove(e ecs.BasicEntity) {}
-func (css *CarSpawnSystem) Update(d float32) {
-	css.since += d
-	if rand.Float32()*50 < css.since*float32(css.level+3) {
-		row := rand.Intn(6) + 1
-		speed := float32((15 - row) * 5)
-		var x float32 = -100
-		if row%2 == 0 {
-			speed = -speed
-			x = 600
-		}
+type CarSpawnSystem struct {
+	sys  *SysList
+	rows []CarFactory
+}
 
-		c := NewCar(engo.Point{x, float32(row * 50)},
-			engo.Point{speed, 0})
-		css.sys.Render.Add(&c.BasicEntity, &c.RenderComponent, &c.SpaceComponent)
-		css.sys.ObMove.Add(&c.BasicEntity, &c.SpaceComponent, &c.VelocityComponent)
-		css.sys.CollSys.AddByInterface(c)
-		css.sys.BoundsSys.AddByInterface(c)
-		css.since = 0
+func NewCarSpawnSystem(level int, sysList *SysList) *CarSpawnSystem {
+	rows := []CarFactory{}
+	for i := 0; i < 6; i++ {
+		m2 := float32(i % 2)
+		v := float32(50 - (3 * i))
+		rows = append(rows, BasicCarFactory(
+			engo.Point{-100 + m2*700, float32((i + 1) * 50)},
+			engo.Point{(1 - m2*2) * v, 0},
+			4, 0, 1000, 1000,
+		))
+	}
+
+	return &CarSpawnSystem{
+		sys:  sysList,
+		rows: rows,
+	}
+}
+
+//Remove Spawner has no need to remove stuff for now
+//Somewhere along the line, I think the factories will become components to be added, isn't that fun.
+func (*CarSpawnSystem) Remove(e ecs.BasicEntity) {}
+
+//Update cycle through factories and see if they have a car to makek
+func (css *CarSpawnSystem) Update(d float32) {
+
+	for _, v := range css.rows {
+		c, ok := v(d)
+		if ok {
+			css.sys.Render.AddByInterface(c)
+			css.sys.ObMove.AddByInterface(c)
+			css.sys.CollSys.AddByInterface(c)
+			css.sys.BoundsSys.AddByInterface(c)
+		}
 	}
 
 }

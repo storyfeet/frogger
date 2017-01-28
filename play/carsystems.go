@@ -42,7 +42,10 @@ func (bds *BoundsDeathSystem) Add(be *ecs.BasicEntity, sc *common.SpaceComponent
 	bds.obs = append(bds.obs, SpaceEntity{be, sc})
 }
 
-func (bds *BoundsDeathSystem) AddByInterface(ob Spaceable) {
+func (bds *BoundsDeathSystem) AddByInterface(ob interface {
+	Spaceable
+	ECSBasicable
+}) {
 	be := ob.GetBasicEntity()
 	if be == nil {
 		fmt.Printf("Log No Entity")
@@ -68,4 +71,47 @@ func (bds *BoundsDeathSystem) Update(d float32) {
 func (bds *BoundsDeathSystem) Remove(ob ecs.BasicEntity) {
 
 	bds.obs = RemoveSpaceEntity(bds.obs, ob.ID())
+}
+
+type movable struct {
+	*ecs.BasicEntity
+	*common.SpaceComponent
+	*VelocityComponent
+}
+
+type ObMoveSystem struct {
+	obs []movable
+}
+
+func (oms *ObMoveSystem) Add(a *ecs.BasicEntity, b *common.SpaceComponent, c *VelocityComponent) {
+	oms.obs = append(oms.obs, movable{a, b, c})
+}
+
+func (obs *ObMoveSystem) AddByInterface(ob interface {
+	ECSBasicable
+	Spaceable
+	Velocitable
+}) {
+	obs.Add(ob.GetBasicEntity(), ob.GetSpaceComponent(), ob.GetVelocityComponent())
+}
+func (oms *ObMoveSystem) Remove(e ecs.BasicEntity) {
+	dp := -1
+	for i, v := range oms.obs {
+		if v.BasicEntity.ID() == e.ID() {
+			dp = i
+			break
+		}
+	}
+	if dp >= 0 {
+		oms.obs = append(oms.obs[:dp], oms.obs[dp+1:]...)
+	}
+}
+
+func (oms *ObMoveSystem) Update(d float32) {
+	for _, v := range oms.obs {
+		pos := &v.SpaceComponent.Position
+		vel := &v.VelocityComponent.Vel
+		pos.X += vel.X * d
+		pos.Y += vel.Y * d
+	}
 }

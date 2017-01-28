@@ -58,10 +58,10 @@ func (fms *FrogMoveSystem) Update(d float32) {
 	if fms.f.DeathComponent.DeadTime == 0 {
 		rel := engo.Point{0, 0}
 		if engo.Input.Button("left").JustPressed() {
-			rel = engo.Point{-50, 0}
+			rel = engo.Point{-40, 0}
 		}
 		if engo.Input.Button("right").JustPressed() {
-			rel = engo.Point{50, 0}
+			rel = engo.Point{40, 0}
 		}
 		if engo.Input.Button("up").JustPressed() {
 			rel = engo.Point{0, -50}
@@ -110,41 +110,6 @@ func (fms *FrogMoveSystem) Update(d float32) {
 }
 
 func (*FrogMoveSystem) Remove(e ecs.BasicEntity) {
-}
-
-type movable struct {
-	*ecs.BasicEntity
-	*common.SpaceComponent
-	*VelocityComponent
-}
-
-type ObMoveSystem struct {
-	obs []movable
-}
-
-func (oms *ObMoveSystem) Add(a *ecs.BasicEntity, b *common.SpaceComponent, c *VelocityComponent) {
-	oms.obs = append(oms.obs, movable{a, b, c})
-}
-func (oms *ObMoveSystem) Remove(e ecs.BasicEntity) {
-	dp := -1
-	for i, v := range oms.obs {
-		if v.BasicEntity.ID() == e.ID() {
-			dp = i
-			break
-		}
-	}
-	if dp >= 0 {
-		oms.obs = append(oms.obs[:dp], oms.obs[dp+1:]...)
-	}
-}
-
-func (oms *ObMoveSystem) Update(d float32) {
-	for _, v := range oms.obs {
-		pos := &v.SpaceComponent.Position
-		vel := &v.VelocityComponent.Vel
-		pos.X += vel.X * d
-		pos.Y += vel.Y * d
-	}
 }
 
 type CrashEntity struct {
