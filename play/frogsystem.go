@@ -1,6 +1,7 @@
 package play
 
 import (
+	"fmt"
 	"image/color"
 
 	"engo.io/ecs"
@@ -17,7 +18,7 @@ type Frog struct {
 	JumpComponent
 }
 
-func NewFrog(loc engo.Point) *Frog {
+func NewFrog(loc engo.Point, commands []KeyCommand) *Frog {
 	res := Frog{BasicEntity: ecs.NewBasic()}
 	res.SpaceComponent = common.SpaceComponent{Width: 50, Height: 50}
 	res.RenderComponent = common.RenderComponent{
@@ -27,6 +28,7 @@ func NewFrog(loc engo.Point) *Frog {
 	res.DeathComponent = DeathComponent{}
 	res.CollisionComponent = common.CollisionComponent{Solid: false, Main: true, Extra: engo.Point{-3, -3}}
 	res.SetZIndex(2.5)
+	res.JumpComponent.Commands = commands
 	res.Reset(loc)
 
 	return &res
@@ -42,69 +44,87 @@ func (fg *Frog) Reset(pt engo.Point) {
 var sysList SysList
 
 type FrogMoveSystem struct {
-	f *Frog
+	frogs []*Frog
 }
 
-func NewFrogMoveSystem(f *Frog) *FrogMoveSystem {
-	return &FrogMoveSystem{f}
+func FrogCommands(n int) []KeyCommand {
+	if n == 0 {
+		return []KeyCommand{
+			{"left", engo.Point{-40, 0}},
+			{"right", engo.Point{40, 0}},
+			{"up", engo.Point{0, -50}},
+			{"down", engo.Point{0, 50}},
+		}
+	}
+	return []KeyCommand{
+		{"2left", engo.Point{-40, 0}},
+		{"2right", engo.Point{40, 0}},
+		{"2up", engo.Point{0, -100}},
+		{"2down", engo.Point{0, 100}},
+	}
+}
+
+func (fms *FrogMoveSystem) Add(fg *Frog) {
+	fms.frogs = append(fms.frogs, fg)
 }
 
 func (fms *FrogMoveSystem) Update(d float32) {
-	jc := &fms.f.JumpComponent
-	jcT := &jc.Target
-	jcN := &jc.Next
 
-	pos := &fms.f.SpaceComponent.Position
-	if fms.f.DeathComponent.DeadTime == 0 {
-		rel := engo.Point{0, 0}
-		if engo.Input.Button("left").JustPressed() {
-			rel = engo.Point{-40, 0}
-		}
-		if engo.Input.Button("right").JustPressed() {
-			rel = engo.Point{40, 0}
-		}
-		if engo.Input.Button("up").JustPressed() {
-			rel = engo.Point{0, -50}
-		}
-		if engo.Input.Button("down").JustPressed() {
-			rel = engo.Point{0, 50}
+	for _, f := range fms.frogs {
+
+		jc := f.JumpComponent
+
+		pos := &f.SpaceComponent.Position
+		if f.DeathComponent.DeadTime == 0 {
+			kp := false
+			var rel engo.Point
+			for _, v := range jc.Commands {
+				if engo.Input.Button(v.k).JustPressed() {
+					rel = v.dir
+					kp = true
+					fmt.Printf("POS %s, Tar %s, Nex %s\n", *pos, jc.Target, jc.Next)
+				}
+			}
+
+			if kp {
+				jc.Next.X = jc.Target.X + rel.X
+				jc.Next.Y = jc.Target.Y + rel.Y
+				fmt.Printf("-POS %s, Tar %s, Nex %s\n", *pos, jc.Target, jc.Next)
+			}
+
+			if *pos == jc.Target {
+				jc.Target = jc.Next
+				if kp {
+					fmt.Printf("-POS %s, Tar %s, Nex %s\n", *pos, jc.Target, jc.Next)
+				}
+			}
 		}
 
-		np := engo.Point{0, 0}
-		if rel != np {
-			jcN.X = jcT.X + rel.X
-			jcN.Y = jcT.Y + rel.Y
+		if pos.X < jc.Target.X {
+			pos.X += d * 200
+			if pos.X > jc.Target.X {
+				pos.X = jc.Target.X
+			}
 		}
 
-		if *pos == *jcT {
-			*jcT = *jcN
+		if pos.X > jc.Target.X {
+			pos.X -= d * 200
+			if pos.X < jc.Target.X {
+				pos.X = jc.Target.X
+			}
 		}
-	}
+		if pos.Y < jc.Target.Y {
+			pos.Y += d * 200
+			if pos.Y > jc.Target.Y {
+				pos.Y = jc.Target.Y
+			}
+		}
 
-	if pos.X < jcT.X {
-		pos.X += d * 200
-		if pos.X > jcT.X {
-			pos.X = jcT.X
-		}
-	}
-
-	if pos.X > jcT.X {
-		pos.X -= d * 200
-		if pos.X < jcT.X {
-			pos.X = jcT.X
-		}
-	}
-	if pos.Y < jcT.Y {
-		pos.Y += d * 200
-		if pos.Y > jcT.Y {
-			pos.Y = jcT.Y
-		}
-	}
-
-	if pos.Y > jcT.Y {
-		pos.Y -= d * 200
-		if pos.Y < jcT.Y {
-			pos.Y = jcT.Y
+		if pos.Y > jc.Target.Y {
+			pos.Y -= d * 200
+			if pos.Y < jc.Target.Y {
+				pos.Y = jc.Target.Y
+			}
 		}
 	}
 }

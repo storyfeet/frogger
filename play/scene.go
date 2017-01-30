@@ -1,11 +1,11 @@
 package play
 
 import (
+	"image/color"
+
 	"engo.io/ecs"
 	"engo.io/engo"
 	"engo.io/engo/common"
-	"fmt"
-	"image/color"
 )
 
 type SysList struct {
@@ -31,23 +31,33 @@ func (ms *MainScene) Setup(w *ecs.World) {
 	engo.Input.RegisterButton("up", engo.ArrowUp)
 	engo.Input.RegisterButton("down", engo.ArrowDown)
 
+	engo.Input.RegisterButton("2left", engo.A)
+	//engo.Input.RegisterButton("left", engo.ArrowLeft)
+	engo.Input.RegisterButton("2right", engo.D)
+	engo.Input.RegisterButton("2up", engo.W)
+	engo.Input.RegisterButton("2down", engo.S)
+
 	var sList SysList
 
-	fg := NewFrog(engo.Point{300, 350})
-	a := fg.GetBasicEntity()
-	fmt.Println(a.ID())
+	fg1 := NewFrog(engo.Point{200, 350}, FrogCommands(0))
+	fg2 := NewFrog(engo.Point{400, 350}, FrogCommands(1))
 
 	sList.Render = &common.RenderSystem{}
-	sList.FrogMove = NewFrogMoveSystem(fg)
+	sList.FrogMove = &FrogMoveSystem{}
 	sList.ObMove = &ObMoveSystem{}
 	sList.CarSpawn = NewCarSpawnSystem(1, &sList)
 	sList.CollSys = &common.CollisionSystem{}
 	sList.CrashSys = &CrashSystem{}
 	sList.BoundsSys = &BoundsDeathSystem{rect: engo.AABB{engo.Point{-5, -5}, engo.Point{610, 410}}, w: w}
 
-	sList.Render.AddByInterface(fg)
-	sList.CollSys.AddByInterface(fg)
-	sList.CrashSys.Add(fg)
+	sList.FrogMove.Add(fg1)
+	sList.Render.AddByInterface(fg1)
+	sList.CollSys.AddByInterface(fg1)
+	sList.CrashSys.Add(fg1)
+	sList.Render.AddByInterface(fg2)
+	sList.CollSys.AddByInterface(fg2)
+	sList.FrogMove.Add(fg2)
+	sList.CrashSys.Add(fg2)
 
 	w.AddSystem(sList.Render)
 	w.AddSystem(sList.CollSys)

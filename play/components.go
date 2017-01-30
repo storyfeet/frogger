@@ -20,9 +20,15 @@ func (dc *DeathComponent) GetDeathComponent() *DeathComponent {
 	return dc
 }
 
+type KeyCommand struct {
+	k   string
+	dir engo.Point
+}
+
 type JumpComponent struct {
-	Target engo.Point
-	Next   engo.Point
+	Target   engo.Point
+	Next     engo.Point
+	Commands []KeyCommand
 }
 
 func (jc *JumpComponent) GetJumpComponent() *JumpComponent {
