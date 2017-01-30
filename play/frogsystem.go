@@ -1,7 +1,6 @@
 package play
 
 import (
-	"fmt"
 	"image/color"
 
 	"engo.io/ecs"
@@ -37,7 +36,7 @@ func NewFrog(loc engo.Point, commands []KeyCommand) *Frog {
 func (fg *Frog) Reset(pt engo.Point) {
 	fg.SpaceComponent.Position = pt
 	fg.JumpComponent.Target = pt
-	fg.JumpComponent.Next = pt
+	fg.JumpComponent.Next = engo.Point{0, 0}
 	fg.RenderComponent.Color = color.Black
 }
 
@@ -59,8 +58,8 @@ func FrogCommands(n int) []KeyCommand {
 	return []KeyCommand{
 		{"2left", engo.Point{-40, 0}},
 		{"2right", engo.Point{40, 0}},
-		{"2up", engo.Point{0, -100}},
-		{"2down", engo.Point{0, 100}},
+		{"2up", engo.Point{0, -50}},
+		{"2down", engo.Point{0, 50}},
 	}
 }
 
@@ -72,9 +71,9 @@ func (fms *FrogMoveSystem) Update(d float32) {
 
 	for _, f := range fms.frogs {
 
-		jc := f.JumpComponent
-
+		jc := &f.JumpComponent
 		pos := &f.SpaceComponent.Position
+
 		if f.DeathComponent.DeadTime == 0 {
 			kp := false
 			var rel engo.Point
@@ -82,50 +81,23 @@ func (fms *FrogMoveSystem) Update(d float32) {
 				if engo.Input.Button(v.k).JustPressed() {
 					rel = v.dir
 					kp = true
-					fmt.Printf("POS %s, Tar %s, Nex %s\n", *pos, jc.Target, jc.Next)
 				}
 			}
 
 			if kp {
-				jc.Next.X = jc.Target.X + rel.X
-				jc.Next.Y = jc.Target.Y + rel.Y
-				fmt.Printf("-POS %s, Tar %s, Nex %s\n", *pos, jc.Target, jc.Next)
+				jc.Next = rel
 			}
 
 			if *pos == jc.Target {
-				jc.Target = jc.Next
-				if kp {
-					fmt.Printf("-POS %s, Tar %s, Nex %s\n", *pos, jc.Target, jc.Next)
-				}
+				(&jc.Target).Add(jc.Next)
+				jc.Next = engo.Point{0, 0}
+
+			} else {
 			}
 		}
 
-		if pos.X < jc.Target.X {
-			pos.X += d * 200
-			if pos.X > jc.Target.X {
-				pos.X = jc.Target.X
-			}
-		}
-
-		if pos.X > jc.Target.X {
-			pos.X -= d * 200
-			if pos.X < jc.Target.X {
-				pos.X = jc.Target.X
-			}
-		}
-		if pos.Y < jc.Target.Y {
-			pos.Y += d * 200
-			if pos.Y > jc.Target.Y {
-				pos.Y = jc.Target.Y
-			}
-		}
-
-		if pos.Y > jc.Target.Y {
-			pos.Y -= d * 200
-			if pos.Y < jc.Target.Y {
-				pos.Y = jc.Target.Y
-			}
-		}
+		pos.X = approach(jc.Target.X, pos.X, d*200)
+		pos.Y = approach(jc.Target.Y, pos.Y, d*200)
 	}
 }
 
