@@ -104,20 +104,36 @@ func (fms *FrogMoveSystem) Update(d float32) {
 func (*FrogMoveSystem) Remove(e ecs.BasicEntity) {
 }
 
-type CrashEntity struct {
-	*ecs.BasicEntity
-	*DeathComponent
-	*common.CollisionComponent
-	*common.RenderComponent
-	*common.SpaceComponent
-}
-
 type CrashSystem struct {
 	obs []*Frog
 }
 
 func (cs *CrashSystem) Add(f *Frog) {
 	cs.obs = append(cs.obs, f)
+}
+
+func (cs *CrashSystem) New(w *ecs.World) {
+	engo.Mailbox.Listen("CollisionMessage", func(message engo.Message) {
+		cm, ok := message.(common.CollisionMessage)
+		if ok {
+			a := cm.Entity.ID()
+			b := cm.To.ID()
+
+			for _, f := range cs.obs {
+				if f.ID() == b {
+					return
+				}
+			}
+
+			for _, f := range cs.obs {
+				if f.ID() == a {
+					if f.DeadTime == 0 {
+						f.DeadTime = 0.0001
+					}
+				}
+			}
+		}
+	})
 }
 
 func (cs *CrashSystem) Remove(e ecs.BasicEntity) {
@@ -136,7 +152,7 @@ func (cs *CrashSystem) Remove(e ecs.BasicEntity) {
 func (cs *CrashSystem) Update(d float32) {
 
 	for _, v := range cs.obs {
-		if v.CollisionComponent.Collides || v.DeathComponent.DeadTime > 0 {
+		if v.DeathComponent.DeadTime > 0 {
 			v.DeathComponent.DeadTime += d
 			v.RenderComponent.Color = color.RGBA{255, 0, 0, 255}
 		}

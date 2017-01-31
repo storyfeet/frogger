@@ -9,13 +9,14 @@ import (
 )
 
 type SysList struct {
-	Render    *common.RenderSystem
-	FrogMove  *FrogMoveSystem
-	CarSpawn  *CarSpawnSystem
-	ObMove    *ObMoveSystem
-	CollSys   *common.CollisionSystem
-	CrashSys  *CrashSystem
-	BoundsSys *BoundsDeathSystem
+	Render     *common.RenderSystem
+	FrogMove   *FrogMoveSystem
+	CarSpawn   *CarSpawnSystem
+	ObMove     *ObMoveSystem
+	CollSys    *common.CollisionSystem
+	CrashSys   *CrashSystem
+	BoundsSys  *BoundsDeathSystem
+	ClimberSys *ClimberSystem
 }
 
 type MainScene struct{}
@@ -49,15 +50,19 @@ func (ms *MainScene) Setup(w *ecs.World) {
 	sList.CollSys = &common.CollisionSystem{}
 	sList.CrashSys = &CrashSystem{}
 	sList.BoundsSys = &BoundsDeathSystem{rect: engo.AABB{engo.Point{-5, -5}, engo.Point{610, 410}}, w: w}
+	sList.ClimberSys = NewClimberSystem(400, 50)
 
 	sList.FrogMove.Add(fg1)
 	sList.Render.AddByInterface(fg1)
 	sList.CollSys.AddByInterface(fg1)
 	sList.CrashSys.Add(fg1)
+	sList.ClimberSys.AddByInterface(fg1)
 	sList.Render.AddByInterface(fg2)
 	sList.CollSys.AddByInterface(fg2)
 	sList.FrogMove.Add(fg2)
 	sList.CrashSys.Add(fg2)
+
+	//sList.ClimberSys.AddByInterface(fg2)
 
 	w.AddSystem(sList.Render)
 	w.AddSystem(sList.CollSys)
@@ -66,6 +71,7 @@ func (ms *MainScene) Setup(w *ecs.World) {
 	w.AddSystem(sList.CarSpawn)
 	w.AddSystem(sList.CrashSys)
 	w.AddSystem(sList.BoundsSys)
+	w.AddSystem(sList.ClimberSys)
 
 	sList.CarSpawn.Fill()
 }

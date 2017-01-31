@@ -25,7 +25,13 @@ type Velocitable interface {
 	GetVelocityComponent() *VelocityComponent
 }
 
-type Drivable interface {
+//Complete
+type SpaceFace interface {
+	ECSBasicable
+	Spaceable
+}
+
+type DriveFace interface {
 	ECSBasicable
 	Spaceable
 	Collidable

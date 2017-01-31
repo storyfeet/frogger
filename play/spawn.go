@@ -7,11 +7,11 @@ import (
 	"engo.io/engo"
 )
 
-type CarFactory func(float32) (Drivable, bool)
+type CarFactory func(float32) (DriveFace, bool)
 
-func (cf CarFactory) Init() []Drivable {
+func (cf CarFactory) Init() []DriveFace {
 
-	res := []Drivable{}
+	res := []DriveFace{}
 	var i float32
 	for i = 0; i < 25; i += 0.05 {
 		c, ok := cf(0.05)
@@ -30,7 +30,7 @@ func (cf CarFactory) Init() []Drivable {
 
 func BasicCarFactory(pos, vel engo.Point, wait, n, r, lt float32) CarFactory {
 	var since float32 = 0
-	return func(d float32) (Drivable, bool) {
+	return func(d float32) (DriveFace, bool) {
 		since += d
 
 		if since < wait {
