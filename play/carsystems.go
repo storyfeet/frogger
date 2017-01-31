@@ -1,12 +1,13 @@
 package play
 
 import (
-	"engo.io/ecs"
-	"engo.io/engo"
-	"engo.io/engo/common"
 	"fmt"
 	"image/color"
 	"math/rand"
+
+	"engo.io/ecs"
+	"engo.io/engo"
+	"engo.io/engo/common"
 )
 
 type MovingOb struct {
@@ -52,6 +53,12 @@ func (bds *BoundsDeathSystem) AddByInterface(ob interface {
 		return
 	}
 	bds.Add(ob.GetBasicEntity(), ob.GetSpaceComponent())
+}
+
+func (bds *BoundsDeathSystem) New(w *ecs.World) {
+	engo.Mailbox.Listen("RowMessage", func(message engo.Message) {
+		bds.rect.Min.Y -= 50
+	})
 }
 
 func (bds *BoundsDeathSystem) Update(d float32) {

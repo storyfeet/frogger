@@ -46,10 +46,10 @@ func (ms *MainScene) Setup(w *ecs.World) {
 	sList.Render = &common.RenderSystem{}
 	sList.FrogMove = &FrogMoveSystem{}
 	sList.ObMove = &ObMoveSystem{}
-	sList.CarSpawn = NewCarSpawnSystem(1, &sList)
+	sList.CarSpawn = NewCarSpawnSystem(1, &sList, BasicRowFactory(350))
 	sList.CollSys = &common.CollisionSystem{}
 	sList.CrashSys = &CrashSystem{}
-	sList.BoundsSys = &BoundsDeathSystem{rect: engo.AABB{engo.Point{-5, -5}, engo.Point{610, 410}}, w: w}
+	sList.BoundsSys = &BoundsDeathSystem{rect: engo.AABB{engo.Point{-5, -200}, engo.Point{610, 410}}, w: w}
 	sList.ClimberSys = NewClimberSystem(400, 50)
 
 	sList.FrogMove.Add(fg1)
@@ -61,8 +61,7 @@ func (ms *MainScene) Setup(w *ecs.World) {
 	sList.CollSys.AddByInterface(fg2)
 	sList.FrogMove.Add(fg2)
 	sList.CrashSys.Add(fg2)
-
-	//sList.ClimberSys.AddByInterface(fg2)
+	sList.ClimberSys.AddByInterface(fg2)
 
 	w.AddSystem(sList.Render)
 	w.AddSystem(sList.CollSys)
