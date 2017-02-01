@@ -59,6 +59,12 @@ func (bds *BoundsDeathSystem) New(w *ecs.World) {
 	engo.Mailbox.Listen("RowMessage", func(message engo.Message) {
 		bds.rect.Min.Y -= 50
 	})
+	engo.Mailbox.Listen("ResetMessage", func(message engo.Message) {
+		t := bds.obs
+		for _, v := range t {
+			bds.w.RemoveEntity(*v.BasicEntity)
+		}
+	})
 }
 
 func (bds *BoundsDeathSystem) Update(d float32) {
@@ -101,6 +107,7 @@ func (obs *ObMoveSystem) AddByInterface(ob interface {
 }) {
 	obs.Add(ob.GetBasicEntity(), ob.GetSpaceComponent(), ob.GetVelocityComponent())
 }
+
 func (oms *ObMoveSystem) Remove(e ecs.BasicEntity) {
 	dp := -1
 	for i, v := range oms.obs {

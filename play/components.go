@@ -14,6 +14,7 @@ func (vc *VelocityComponent) GetVelocityComponent() *VelocityComponent {
 
 type DeathComponent struct {
 	DeadTime float32
+	Origin   engo.Point
 }
 
 func (dc *DeathComponent) GetDeathComponent() *DeathComponent {

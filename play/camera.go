@@ -1,22 +1,25 @@
 package play
 
 import (
+	"fmt"
+
 	"engo.io/ecs"
 	"engo.io/engo"
 	"engo.io/engo/common"
 )
 
 type ClimberSystem struct {
-	Base, Step float32
-	pres       float32
-	obs        []SpaceEntity
+	Base, Step, Init float32
+	Pres             float32
+	obs              []SpaceEntity
 }
 
 func NewClimberSystem(base, step float32) *ClimberSystem {
 	return &ClimberSystem{
+		Init: base,
 		Base: base,
 		Step: step,
-		pres: base,
+		Pres: base,
 	}
 }
 
@@ -28,8 +31,22 @@ func (cs *ClimberSystem) Remove(e ecs.BasicEntity) {
 	cs.obs = RemoveSpaceEntity(cs.obs, e.ID())
 }
 
+func (cs *ClimberSystem) New(w *ecs.World) {
+	engo.Mailbox.Listen("ResetMessage", func(message engo.Message) {
+		fmt.Println("ResetReceived")
+		engo.Mailbox.Dispatch(common.CameraMessage{
+			Axis:        common.YAxis,
+			Value:       cs.Init - cs.Base,
+			Incremental: true,
+		})
+		cs.Base = cs.Init
+		cs.Pres = cs.Init
+
+	})
+}
+
 func (cs *ClimberSystem) Update(d float32) {
-	bar := cs.Base - (cs.Step * 2)
+	bar := cs.Base - (cs.Step * 3)
 	highest := bar
 	for _, f := range cs.obs {
 		if f.Position.Y > highest {
@@ -43,9 +60,9 @@ func (cs *ClimberSystem) Update(d float32) {
 		common.CameraBounds.Min.Y -= 50
 
 	}
-	if cs.Base < cs.pres {
-		mDist := (70 + cs.pres - cs.Base) * d
-		cs.pres -= mDist
+	if cs.Base < cs.Pres {
+		mDist := (70 + cs.Pres - cs.Base) * d
+		cs.Pres -= mDist
 		engo.Mailbox.Dispatch(common.CameraMessage{
 			Axis:        common.YAxis,
 			Value:       -mDist,

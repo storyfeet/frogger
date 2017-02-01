@@ -24,20 +24,21 @@ func NewFrog(loc engo.Point, commands []KeyCommand) *Frog {
 		Drawable: common.Triangle{},
 		Color:    color.Black,
 	}
-	res.DeathComponent = DeathComponent{}
+	res.DeathComponent = DeathComponent{Origin: loc}
 	res.CollisionComponent = common.CollisionComponent{Solid: false, Main: true, Extra: engo.Point{-3, -3}}
 	res.SetZIndex(2.5)
 	res.JumpComponent.Commands = commands
-	res.Reset(loc)
+	res.Reset()
 
 	return &res
 }
 
-func (fg *Frog) Reset(pt engo.Point) {
-	fg.SpaceComponent.Position = pt
-	fg.JumpComponent.Target = pt
+func (fg *Frog) Reset() {
+	fg.SpaceComponent.Position = fg.Origin
+	fg.JumpComponent.Target = fg.Origin
 	fg.JumpComponent.Next = engo.Point{0, 0}
 	fg.RenderComponent.Color = color.Black
+	fg.DeadTime = 0
 }
 
 var sysList SysList
@@ -151,14 +152,21 @@ func (cs *CrashSystem) Remove(e ecs.BasicEntity) {
 
 func (cs *CrashSystem) Update(d float32) {
 
+	doReset := false
 	for _, v := range cs.obs {
 		if v.DeathComponent.DeadTime > 0 {
 			v.DeathComponent.DeadTime += d
 			v.RenderComponent.Color = color.RGBA{255, 0, 0, 255}
 		}
 		if v.DeadTime > 2 {
-			v.Reset(engo.Point{300, 350})
-			v.DeadTime = 0
+			doReset = true
+		}
+	}
+
+	if doReset {
+		engo.Mailbox.Dispatch(ResetMessage{Score: false})
+		for _, v := range cs.obs {
+			v.Reset()
 		}
 	}
 }

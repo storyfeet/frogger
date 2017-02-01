@@ -103,6 +103,16 @@ func (css *CarSpawnSystem) New(w *ecs.World) {
 		css.rows = append(css.rows, nFac)
 		css.rows = css.rows[1:]
 	})
+	engo.Mailbox.Listen("ResetMessage", func(message engo.Message) {
+		rows := []CarFactory{}
+		for i := 0; i < 8; i++ {
+			newFac := css.rowfac(i)
+			rows = append(rows, newFac)
+		}
+		css.rownum = 7
+		css.rows = rows
+		css.Fill()
+	})
 }
 
 //Remove Spawner has no need to remove stuff for now
