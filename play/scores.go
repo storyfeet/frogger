@@ -18,40 +18,61 @@ type ScoreEntity struct {
 
 type ScoreSystem struct {
 	scores []*ScoreEntity
+	fnt    *common.Font
 }
 
 func (ss *ScoreSystem) CreatePlayer() *ScoreEntity {
-	fnt := &common.Font{
-		URL:  "Targa.ttf",
-		FG:   color.Black,
-		Size: 64,
+	if ss.fnt == nil {
+		ss.fnt = &common.Font{
+			URL:  "Targa.ttf",
+			FG:   color.Black,
+			Size: 64,
+		}
 	}
-	err := fnt.CreatePreloaded()
+	err := ss.fnt.CreatePreloaded()
 	if err != nil {
 		fmt.Println("Could not Create preloaded Targa.ttf")
 	}
+	pnum := len(ss.scores)
 
 	np := &ScoreEntity{
 		BasicEntity: ecs.NewBasic(),
 		RenderComponent: common.RenderComponent{
 			Drawable: common.Text{
-				Font: fnt,
-				Text: "score 0",
+				Font: ss.fnt,
+				Text: fmt.Sprintf("P%d 0", pnum),
 			},
 		},
 		SpaceComponent: common.SpaceComponent{
-			Position: engo.Point{0, 0},
+			Position: engo.Point{float32(pnum * 200), 0},
 		},
 	}
 
+	np.SetZIndex(10)
 	np.SetShader(common.HUDShader)
 
 	ss.scores = append(ss.scores, np)
 	return np
 }
 
-func (ss *ScoreSystem) New(w ecs.World) {
+func (ss *ScoreSystem) New(w *ecs.World) {
+	fmt.Println("New ScoreSystem")
 	engo.Mailbox.Listen("ScoreMessage", func(m engo.Message) {
+		fmt.Println("ScoreMessage Recieved :")
+		sm, ok := m.(ScoreMessage)
+		if !ok {
+			return
+		}
+		for i, v := range ss.scores {
+			if i == sm.PNum {
+				v.Score += sm.Inc
+				v.RenderComponent.Drawable = common.Text{
+					Font: ss.fnt,
+					Text: fmt.Sprintf("P%d %d", i, v.Score),
+				}
+			}
+		}
+
 	})
 }
 

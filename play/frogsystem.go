@@ -1,6 +1,7 @@
 package play
 
 import (
+	"fmt"
 	"image/color"
 
 	"engo.io/ecs"
@@ -114,6 +115,7 @@ func (cs *CrashSystem) Add(f *Frog) {
 }
 
 func (cs *CrashSystem) New(w *ecs.World) {
+	fmt.Println("New CrashSystem")
 	engo.Mailbox.Listen("CollisionMessage", func(message engo.Message) {
 		cm, ok := message.(common.CollisionMessage)
 		if ok {
@@ -165,7 +167,12 @@ func (cs *CrashSystem) Update(d float32) {
 
 	if doReset {
 		engo.Mailbox.Dispatch(ResetMessage{Score: false})
-		for _, v := range cs.obs {
+
+		for i, v := range cs.obs {
+			if v.DeadTime == 0 {
+				fmt.Println("Score senting")
+				engo.Mailbox.Dispatch(ScoreMessage{PNum: i, Inc: 1})
+			}
 			v.Reset()
 		}
 	}
