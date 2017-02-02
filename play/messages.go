@@ -16,3 +16,9 @@ type ResetMessage struct {
 }
 
 func (ResetMessage) Type() string { return "ResetMessage" }
+
+type ScoreMessage struct {
+	PNum, Inc int
+}
+
+func (ScoreMessage) Type() string { return "ScoreMessage" }

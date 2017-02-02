@@ -1,6 +1,7 @@
 package play
 
 import (
+	"fmt"
 	"image/color"
 
 	"engo.io/ecs"
@@ -17,12 +18,19 @@ type SysList struct {
 	CrashSys   *CrashSystem
 	BoundsSys  *BoundsDeathSystem
 	ClimberSys *ClimberSystem
+	ScoreSys   *ScoreSystem
 }
 
 type MainScene struct{ NPlayers int }
 
 func (*MainScene) Type() string { return "MainScene" }
-func (*MainScene) Preload()     {}
+func (*MainScene) Preload() {
+	err := engo.Files.Load("Targa.ttf")
+	if err != nil {
+		fmt.Println("Could not load font Targa")
+	}
+}
+
 func (ms *MainScene) Setup(w *ecs.World) {
 	common.SetBackground(color.White)
 
@@ -48,6 +56,7 @@ func (ms *MainScene) Setup(w *ecs.World) {
 	sList.CrashSys = &CrashSystem{}
 	sList.BoundsSys = &BoundsDeathSystem{rect: engo.AABB{engo.Point{-5, -200}, engo.Point{610, 410}}, w: w}
 	sList.ClimberSys = NewClimberSystem(400, 50)
+	sList.ScoreSys = &ScoreSystem{}
 
 	fg1 := NewFrog(engo.Point{200, 350}, FrogCommands(0))
 	sList.FrogMove.Add(fg1)
@@ -55,6 +64,7 @@ func (ms *MainScene) Setup(w *ecs.World) {
 	sList.CollSys.AddByInterface(fg1)
 	sList.CrashSys.Add(fg1)
 	sList.ClimberSys.AddByInterface(fg1)
+
 	if ms.NPlayers > 1 {
 		fg2 := NewFrog(engo.Point{400, 350}, FrogCommands(1))
 		sList.Render.AddByInterface(fg2)
@@ -62,6 +72,11 @@ func (ms *MainScene) Setup(w *ecs.World) {
 		sList.FrogMove.Add(fg2)
 		sList.CrashSys.Add(fg2)
 		sList.ClimberSys.AddByInterface(fg2)
+	}
+
+	for i := 0; i < ms.NPlayers; i++ {
+		sc1 := sList.ScoreSys.CreatePlayer()
+		sList.Render.AddByInterface(sc1)
 	}
 
 	w.AddSystem(sList.Render)
@@ -72,6 +87,8 @@ func (ms *MainScene) Setup(w *ecs.World) {
 	w.AddSystem(sList.CrashSys)
 	w.AddSystem(sList.BoundsSys)
 	w.AddSystem(sList.ClimberSys)
+	w.AddSystem(sList.ScoreSys)
 
 	sList.CarSpawn.Fill()
+
 }
