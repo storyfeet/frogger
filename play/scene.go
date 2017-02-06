@@ -34,18 +34,6 @@ func (*MainScene) Preload() {
 func (ms *MainScene) Setup(w *ecs.World) {
 	common.SetBackground(color.White)
 
-	engo.Input.RegisterButton("left", engo.ArrowLeft)
-	//engo.Input.RegisterButton("left", engo.ArrowLeft)
-	engo.Input.RegisterButton("right", engo.ArrowRight)
-	engo.Input.RegisterButton("up", engo.ArrowUp)
-	engo.Input.RegisterButton("down", engo.ArrowDown)
-
-	engo.Input.RegisterButton("2left", engo.A)
-	//engo.Input.RegisterButton("left", engo.ArrowLeft)
-	engo.Input.RegisterButton("2right", engo.D)
-	engo.Input.RegisterButton("2up", engo.W)
-	engo.Input.RegisterButton("2down", engo.S)
-
 	var sList SysList
 
 	sList.Render = &common.RenderSystem{}
@@ -58,25 +46,21 @@ func (ms *MainScene) Setup(w *ecs.World) {
 	sList.ClimberSys = NewClimberSystem(400, 50)
 	sList.ScoreSys = &ScoreSystem{}
 
-	fg1 := NewFrog(engo.Point{200, 350}, FrogCommands(0))
-	sList.FrogMove.Add(fg1)
-	sList.Render.AddByInterface(fg1)
-	sList.CollSys.AddByInterface(fg1)
-	sList.CrashSys.Add(fg1)
-	sList.ClimberSys.AddByInterface(fg1)
-
-	if ms.NPlayers > 1 {
-		fg2 := NewFrog(engo.Point{400, 350}, FrogCommands(1))
-		sList.Render.AddByInterface(fg2)
-		sList.CollSys.AddByInterface(fg2)
-		sList.FrogMove.Add(fg2)
-		sList.CrashSys.Add(fg2)
-		sList.ClimberSys.AddByInterface(fg2)
-	}
-
 	for i := 0; i < ms.NPlayers; i++ {
+		fc := FrogCommands(i)
+		for _, kc := range fc {
+			engo.Input.RegisterButton(kc.KName, kc.key)
+
+		}
+		fg1 := NewFrog(engo.Point{200, 350}, fc)
+		sList.FrogMove.Add(fg1)
+		sList.Render.AddByInterface(fg1)
+		sList.CollSys.AddByInterface(fg1)
+		sList.CrashSys.Add(fg1)
+		sList.ClimberSys.AddByInterface(fg1)
 		sc1 := sList.ScoreSys.CreatePlayer()
 		sList.Render.AddByInterface(sc1)
+
 	}
 
 	w.AddSystem(sList.Render)

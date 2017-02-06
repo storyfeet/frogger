@@ -51,18 +51,27 @@ type FrogMoveSystem struct {
 func FrogCommands(n int) []KeyCommand {
 	if n == 0 {
 		return []KeyCommand{
-			{"left", engo.Point{-40, 0}},
-			{"right", engo.Point{40, 0}},
-			{"up", engo.Point{0, -50}},
-			{"down", engo.Point{0, 50}},
+			{"left", engo.Point{-40, 0}, engo.ArrowLeft},
+			{"right", engo.Point{40, 0}, engo.ArrowRight},
+			{"up", engo.Point{0, -50}, engo.ArrowUp},
+			{"down", engo.Point{0, 50}, engo.ArrowDown},
+		}
+	}
+	if n == 1 {
+		return []KeyCommand{
+			{"2left", engo.Point{-40, 0}, engo.A},
+			{"2right", engo.Point{40, 0}, engo.D},
+			{"2up", engo.Point{0, -50}, engo.W},
+			{"2down", engo.Point{0, 50}, engo.S},
 		}
 	}
 	return []KeyCommand{
-		{"2left", engo.Point{-40, 0}},
-		{"2right", engo.Point{40, 0}},
-		{"2up", engo.Point{0, -50}},
-		{"2down", engo.Point{0, 50}},
+		{"3left", engo.Point{-40, 0}, engo.J},
+		{"3right", engo.Point{40, 0}, engo.L},
+		{"3up", engo.Point{0, -50}, engo.I},
+		{"3down", engo.Point{0, 50}, engo.K},
 	}
+
 }
 
 func (fms *FrogMoveSystem) Add(fg *Frog) {
@@ -80,7 +89,7 @@ func (fms *FrogMoveSystem) Update(d float32) {
 			kp := false
 			var rel engo.Point
 			for _, v := range jc.Commands {
-				if engo.Input.Button(v.k).JustPressed() {
+				if engo.Input.Button(v.KName).JustPressed() {
 					rel = v.dir
 					kp = true
 				}

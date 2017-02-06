@@ -22,8 +22,9 @@ func (dc *DeathComponent) GetDeathComponent() *DeathComponent {
 }
 
 type KeyCommand struct {
-	k   string
-	dir engo.Point
+	KName string
+	dir   engo.Point
+	key   engo.Key
 }
 
 type JumpComponent struct {
